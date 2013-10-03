@@ -19,6 +19,8 @@ munki_do
 """
 import optparse
 import sys
+import tempfile
+import shutil
 
 from munkilib import FoundationPlist
 from munkilib import updatecheck
@@ -58,14 +60,21 @@ if options.checkstate:
 if not options.install and not options.uninstall:
     sys.exit()
 
+temp_dir = tempfile.mkdtemp()
+temp_plist = (temp_dir + "/localmanifest.plist")
 manifest = {}
 manifest['catalogs'] = cataloglist
 manifest['managed_installs'] = options.install or []
 manifest['managed_uninstalls'] = options.uninstall or []
-FoundationPlist.writePlist(manifest, '/tmp/localmanifest.plist')
+FoundationPlist.writePlist(manifest, temp_plist)
 updatecheckresult = updatecheck.check(
-    localmanifestpath='/tmp/localmanifest.plist')
+    localmanifestpath=temp_plist)
 if updatecheckresult == 1:
     need_to_restart = installer.run()
     if need_to_restart:
         print("Please restart immediately!")
+
+try:
+    shutil.rmtree(temp_dir)
+except OSError:
+    print("Could not remove temp directory")
