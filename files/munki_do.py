@@ -18,7 +18,6 @@
 munki_do
 """
 import optparse
-import subprocess
 import sys
 
 from munkilib import FoundationPlist
@@ -28,45 +27,45 @@ from munkilib import munkicommon
 
 p = optparse.OptionParser()
 p.add_option('--catalog', '-c', action="append",
-           help='Which catalog to consult. May be specified multiple times.')
+             help='Which catalog to consult. May be specified multiple times.')
 p.add_option('--install', '-i', action="append",
-           help='An item to install. May be specified multiple times.')
+             help='An item to install. May be specified multiple times.')
 p.add_option('--uninstall', '-u', action="append",
-           help='An item to uninstall. May be specified multiple times.')
+             help='An item to uninstall. May be specified multiple times.')
 p.add_option('--checkstate', action="append",
-           help='Check the state of an item. May be specified multiple times.')
+             help='Check the state of an item. May be specified multiple times.')
 
 options, arguments = p.parse_args()
 cataloglist = options.catalog or ['production']
 
 if options.checkstate:
-   updatecheck.MACHINE = munkicommon.getMachineFacts()
-   updatecheck.CONDITIONS = munkicommon.getConditions()
-   updatecheck.getCatalogs(cataloglist)
-   for check_item in options.checkstate:
-       installed_state = 'unknown'
-       item_pl = updatecheck.getItemDetail(check_item, cataloglist)
-       if item_pl:
-           if updatecheck.installedState(item_pl):
-               installed_state = "installed"
-               exit_code = 0
-           else:
-               installed_state = "not installed"
-               exit_code = 1
-       print "%s: %s" % (check_item, installed_state)
-       exit(exit_code)
+    updatecheck.MACHINE = munkicommon.getMachineFacts()
+    updatecheck.CONDITIONS = munkicommon.getConditions()
+    updatecheck.getCatalogs(cataloglist)
+    for check_item in options.checkstate:
+        installed_state = 'unknown'
+        item_pl = updatecheck.getItemDetail(check_item, cataloglist)
+        if item_pl:
+            if updatecheck.installedState(item_pl):
+                installed_state = "installed"
+                exit_code = 0
+            else:
+                installed_state = "not installed"
+                exit_code = 1
+        print("%s: %s") % (check_item, installed_state)
+        sys.exit(exit_code)
 
 if not options.install and not options.uninstall:
-   exit()
+    sys.exit()
 
 manifest = {}
 manifest['catalogs'] = cataloglist
-manifest['managed_installs'] = options.install or [] 
-manifest['managed_uninstalls'] = options.uninstall or [] 
-FoundationPlist.writePlist(manifest, '/tmp/localmanifest.plist') 
-updatecheckresult = updatecheck.check( 
-    localmanifestpath='/tmp/localmanifest.plist') 
-if updatecheckresult == 1: 
-  need_to_restart = installer.run() 
-  if need_to_restart: 
-    print "Please restart immediately!" 
+manifest['managed_installs'] = options.install or []
+manifest['managed_uninstalls'] = options.uninstall or []
+FoundationPlist.writePlist(manifest, '/tmp/localmanifest.plist')
+updatecheckresult = updatecheck.check(
+    localmanifestpath='/tmp/localmanifest.plist')
+if updatecheckresult == 1:
+    need_to_restart = installer.run()
+    if need_to_restart:
+        print("Please restart immediately!")
