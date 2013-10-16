@@ -4,6 +4,6 @@ class puppet_munki {
     mode   => '0700',
     owner  => '0',
     group  => '0',
-    source => 'puppet:///modules/puppet-munki/munki_do.py',
+    source => 'puppet:///modules/puppet_munki/munki_do.py',
   }
 }
